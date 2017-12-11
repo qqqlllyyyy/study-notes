@@ -21,6 +21,7 @@ There are three levels of configurations:
   * How to direct: `git config`
 
 Examples:
+
 ```bash
 # Set username, email and default editor
 git config --global user.name "qqqlllyyyy"
@@ -33,4 +34,16 @@ git config --global color.ui true
 # View configurations
 git config --list
 git config user.name
+```
+
+Setup Auto-completion:
+
+```bash
+# Change to home dir
+cd ~
+# Download
+curl -0L https://github.com/git/git/raw/master/contrib/completion/git-completion.bash
+# Rename file
+mv ~/git-completion.bash ~/.git-completion.bash
+# Edit ~/.bash_profile or ~/.bashrc
 ```
