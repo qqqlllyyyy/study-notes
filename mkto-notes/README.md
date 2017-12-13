@@ -40,7 +40,7 @@ All styles are defined in scss files in `/web/mkt-3.0/resources/sass/`, for exam
 
 ## Tickets
 
-#### LM-98590
+### LM-98590
 
 * **URL:** https://resource.marketo.com/jira/browse/LM-98590?filter=-1
 * **Description:** After deleting the dynamic account list, the left tree doesn't update until the full refresh
@@ -49,7 +49,7 @@ All styles are defined in scss files in `/web/mkt-3.0/resources/sass/`, for exam
 
 When trying to create new dynamic list, we need some source CRM to name the list. I modified the function `executeCrmViewsAutosuggest` in `apps/search/modules/abm/actions/actions.class.php` to manually add the CRM list. (starting line 2361)
 
-#### LM-104697
+### LM-104697
 
 * **URL:** https://resource.marketo.com/jira/browse/LM-104697?filter=-1
 * **Description:** Named Account custom fields can be set without "Edit Named Account" permission
@@ -62,4 +62,18 @@ Deleted the record with ID `1316` in `testBetacust.access_grant`. That is the re
 
 The data for a named account will be updated via `update` ajax call to the `doUpdate` function in  `/apps/search/lib/data/NamedAccountAccess.php`. However, we can not reach this function since the permission check will be executed in its parent class `DataAccess`.
 
-The response for a 403 http request is `User does not have access`, which is defined in the function `executeForbiddenError` (line 1990) in `/apps/search/modules/user/actions/actions.class.php`.
+The response for a 403 http request is `User does not have access`, which is defined in the function `executeForbiddenError` (line 1990) in `/apps/search/modules/user/actions/actions.class.php`. But `executeForbiddenError()` is not called in other files. Actually, it is executed in line 54 in `/apps/search/lib/mktAccessZoneFilter.class.php`:
+
+```php
+class mktAccessZoneFilter extends sfFilter {
+  ...
+  public function execute($filterChain) {
+    ...
+    // We're authenticated, so any access error goes through user/forbiddenError handler,
+    // not the standard user/accessError.
+    sfConfig::set('sf_secure_action', 'forbiddenError');
+    ...
+  }
+  ...
+}
+```
