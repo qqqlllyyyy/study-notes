@@ -1,36 +1,18 @@
 
-## Database
-
-Account information to connect to the database:
-
-* Host: mlm.devdocker.marketo.com
-* Account: root
-* Password: marketo17
-
-There is a `betamkto` database for each group (pod), and a `{{username}}Betacust` database for each instance (subscription).
-
-* `betamkto.user`: Account & password information for the system. Note that the field `password_salt_updated_at_utc` is required to encrypt/decrypt the password.
-* `betamkto.contact_info`: Account details for the system. (first name, last name, address, ...)
-* `testBetacust.access_role`: Role information. For example, ID for `Abm User` is needed if we want to have access to ABM.
-* `testBetacust.user_access_role`: Define role for each user. We need to have a record with userid `test@marketo.com` and access_role_id `26` (ID for `Abm User` in `access_role`).
-* `testBetacust.access_capability`: Detailed permissions, for example, `Edit Named Account`.
-* `testBetacust.access_grant`: Permissions for each role. Joint table for `access_role` and `access_capability`.
-
-
-All named accounts are saved in table `mkt_account`.
-
-All named account lists are saved in table `mkt_account_list`.
-
 ## Test Files
 
 Since abm service is not setup locally, we can use the test file to mock abm service. Go to `/apps/search/config/app.yml` and go to line 223: set `test_mock_client` to `true`. We will then use the files in `/app/test/abm/data/namedAccounts.json` as response for local ajax requests.
 
-## Patch File
+## Work Flow
 
 Create patch files:
-
 ```bash
 svn diff web/mkt-3.0/* > test.patch
+```
+
+Checkin (commit) changes:
+```bash
+svn commit -m “LM-ticket id some text” file
 ```
 
 ## Styles
@@ -48,6 +30,17 @@ All styles are defined in scss files in `/web/mkt-3.0/resources/sass/`, for exam
 * **Controller:** /web/mkt-3.0/app/controller/abm/accountList/AccountListTree.js
 
 When trying to create new dynamic list, we need some source CRM to name the list. I modified the function `executeCrmViewsAutosuggest` in `apps/search/modules/abm/actions/actions.class.php` to manually add the CRM list. (starting line 2361)
+
+Checkin: 
+
+```bash
+svn commit -m "LM-98590 Refresh dynamic list tree after deleting a dynamic account list." web/mkt-3.0/app/controller/abm/accountList/AccountListTree.js
+
+# Sending        web/mkt-3.0/app/controller/abm/accountList/AccountListTree.js
+# Transmitting file data .done
+# Committing transaction...
+# Committed revision 106734.
+```
 
 ### LM-104697
 
@@ -73,7 +66,54 @@ class mktAccessZoneFilter extends sfFilter {
     // not the standard user/accessError.
     sfConfig::set('sf_secure_action', 'forbiddenError');
     ...
+    $filterChain->execute(); // Line 181
   }
   ...
 }
+```
+
+However, we just need to check the permission in the front-end. `/web/mkt-3.0/app/controller/LegacyHelper.js` has a function called `canEditAsset`. We can use `Mkt3.controller.LegacyHelper.canEditAsset(...)` to check some permission with type 'function' in the db table `testBetacust.access_capability`. For example, 'ac_editEmail', 'ac_editSocialApp'.
+
+But the record `ac_editNamedAccount` has a type 'source', which can be viewed in `/web/mkt-3.0/app/lib/core/AccessManager.js`. This class has a function `hasAccess` and can be used like this: 
+
+```javascript
+if (Mkt3.Access.hasAccess(Mkt3.Access.Credentials.EDIT_NAMED_ACCOUNT)) { ... }
+```
+
+Finally, I added the code in `/web/mkt-3.0/app/controller/abm/namedAccount/CreateForm.js` to check permission and the fields will be disabled if no permission for current user:
+
+```javascript
+...
+setupFields: function(customFields) {
+  ...
+  // Check Permission 'Edit Named Account'
+  if (!Mkt3.Access.hasAccess(Mkt3.Access.Credentials.EDIT_NAMED_ACCOUNT)) {
+    // Disable default fields
+    this.refs.forEach(function(field) {
+      var tempArray = field.selector.split('createNamedAccountForm ');
+      if (tempArray.length > 1) {
+        var defaultField = form.down(tempArray[1]);
+        if (defaultField && !Ext4.isEmpty(defaultField)) {
+          defaultField.setDisabled(true);
+        }
+      }
+    });
+    // Disable custom fields
+    customFieldList.forEach(function(field) {
+      var extName = field['extName'],
+          itemId = extName.replace(/[^a-zA-Z0-9_]/g,'');
+      formField = form.down('[name=' + itemId + ']');
+      if (formField && !Ext4.isEmpty(formField)) {
+        formField.setDisabled(true);
+      }
+    });
+  }
+}
+...
+```
+
+Create patch file:
+```bash
+cd /Users/lqin/devdocker/mlm
+svn diff web/mkt-3.0/app/controller/abm/namedAccount/CreateForm.js* > Liyu-20171213.patch
 ```
