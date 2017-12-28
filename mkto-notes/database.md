@@ -4,7 +4,7 @@ Account information to connect to the database:
 
 * Host: mlm.devdocker.marketo.com
 * Account: root
-* Password: marketo17
+* Password: m...17
 
 There is a `betamkto` database for each group (pod), and a `{{username}}Betacust` database for each instance (subscription).
 

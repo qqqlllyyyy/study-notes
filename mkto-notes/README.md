@@ -62,6 +62,18 @@ Checkin (commit) changes:
 svn commit -m “LM-ticket id some text” file
 ```
 
+Patch to INT test server (check the hostname in browser, `sjintweb1` or `sjintweb2`):
+
+```bash
+ssh {{myAccount}}@sjintweb1.marketo.org # Pwd: {{myPwd}}.substring(0, 7)
+cd /www/mkto
+vi LM-84256.patch # Paste patch diff content here, use ':wq' to save and exit
+patch -p0 < LM-84256.patch
+php batch/compressScripts.php
+# Revert patch:
+patch -p0 -R < LM-84256.patch
+```
+
 ## Styles
 
 All styles are defined in scss files in `/web/mkt-3.0/resources/sass/`, for example: `/web/mkt-3.0/resources/sass/widgets/_abmDashboard.scss`. We can rewrite the file and run the shell script `/batch/buildCss.sh` to re-build css files.
