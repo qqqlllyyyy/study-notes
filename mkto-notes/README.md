@@ -5,6 +5,7 @@
 Here is a list of ticket notes:
 
 * [December 2017](tickets/2017-12.md)
+* [January 2018](tickets/2018-01.md)
 
 ## Test Files
 
