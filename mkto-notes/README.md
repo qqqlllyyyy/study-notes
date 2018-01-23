@@ -78,3 +78,36 @@ patch -p0 -R < LM-84256.patch
 ## Styles
 
 All styles are defined in scss files in `/web/mkt-3.0/resources/sass/`, for example: `/web/mkt-3.0/resources/sass/widgets/_abmDashboard.scss`. We can rewrite the file and run the shell script `/batch/buildCss.sh` to re-build css files.
+
+```bash
+Install RVM:  
+curl -L https://get.rvm.io | bash -s stable --ruby
+
+Install Ruby 1.9.3:
+rvm install 1.9.3
+rvm use 1.9.3
+rvm rubygemslastest
+ruby --version
+
+gem list
+bigdecimal (1.1.0)
+bundler-unload (1.0.2)
+chunky_png (1.3.8)
+compass (0.12.2)
+executable-hooks (1.3.2)
+ffi (1.9.18)
+fssm (0.2.10)
+gem-wrappers (1.3.2)
+io-console (0.3)
+json (1.5.5)
+minitest (2.5.1)
+rake (0.9.2.2)
+rb-fsevent (0.10.2)
+rb-inotify (0.9.10)
+rdoc (3.9.5)
+rubygems-bundler (1.4.4)
+
+gem install compass -v 0.12.2
+
+sh batch/buildCss.sh
+```
